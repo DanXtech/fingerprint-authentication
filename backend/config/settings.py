@@ -190,16 +190,15 @@ SIMPLE_JWT = {
 
 
 # ---------------------------------------------------------------------------
-# CORS (so the React dev server on a different port can call this API)
+# CORS Configuration
 # ---------------------------------------------------------------------------
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',   
-    'http://127.0.0.1:5173',
+# Using regex to dynamically match any frontend app variations on Vercel 
+# while safely preserving credentials compatibility.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
 ]
-
-# Append your deployed React frontend URL to CORS if it exists on Render
-if "FRONTEND_URL" in os.environ:
-    CORS_ALLOWED_ORIGINS.append(os.environ.get("FRONTEND_URL"))
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -213,13 +212,13 @@ SESSION_COOKIE_SECURE = not DEBUG  # True in production (requires HTTPS)
 # ---------------------------------------------------------------------------
 # WebAuthn Settings (Fingerprint / Face ID / Windows Hello)
 # ---------------------------------------------------------------------------
-WEBAUTHN_RP_NAME = "Bass Bank"  # Added this to fix the AttributeError
+WEBAUTHN_RP_NAME = "Bass Bank"
 
 if DEBUG:
     # Safe settings for local Vite development server
     WEBAUTHN_RP_ID = "localhost"
     WEBAUTHN_ORIGIN = "http://localhost:5173"
 else:
-    # Production settings pulling from your Render environment values
-    WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "://render.com")
-    WEBAUTHN_ORIGIN = os.environ.get("FRONTEND_URL", "https://render.com")
+    # Production settings pulling from environmental parameters or falling back to the exact live Vercel domain
+    WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "fingerprint-authentication.vercel.app")
+    WEBAUTHN_ORIGIN = os.environ.get("FRONTEND_URL", "https://vercel.app")
