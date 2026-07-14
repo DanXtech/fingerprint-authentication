@@ -30,7 +30,16 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-8)ggu3ldvshc(88y&_mq6
 DEBUG = "RENDER" not in os.environ
 
 
-ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME', '127.0.0.1'), 'localhost']
+# ALLOWED_HOSTS configuration for different deployment environments
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    'https://fingerprint-authentication-zsqz.vercel.app',
+    os.environ.get('RENDER_EXTERNAL_HOSTNAME', ''),
+    os.environ.get('VERCEL_URL', ''),
+]
+# Remove empty strings from ALLOWED_HOSTS
+ALLOWED_HOSTS = [host for host in ALLOWED_HOSTS if host]
 
 
 # Application definition
