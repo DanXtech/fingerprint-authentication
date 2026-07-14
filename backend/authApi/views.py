@@ -34,6 +34,16 @@ ORIGIN = settings.WEBAUTHN_ORIGIN
 User = get_user_model()
 
 
+class HealthCheckView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({
+            "status": "ok",
+            "message": "Server is running"
+        })
+
+
 @method_decorator(ensure_csrf_cookie, name='dispatch')
 class CsrfTokenView(APIView):
     permission_classes = [AllowAny]

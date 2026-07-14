@@ -3,10 +3,11 @@ from .views import (
     RegistrationOptionsView, RegistrationVerifyView,
     LoginOptionsView, LoginVerifyView, SignupOptionsView, SignupVerifyView,
     CredentialListView, CredentialDeleteView, ProfileView, BiometricLogoutView,
-    CsrfTokenView,
+    CsrfTokenView, HealthCheckView,
 )
 
 urlpatterns = [
+    path("health/", HealthCheckView.as_view(), name="auth_health"),
     path("csrf/", CsrfTokenView.as_view(), name="auth_csrf"),
 
     # Create a brand-new passwordless account with a fingerprint (no form at all)

@@ -118,4 +118,11 @@ python manage.py collectstatic --no-input
 
 # Run migrations
 python manage.py migrate
-pip install -r requirements.txt
+pip install -r requirements.
+
+
+
+
+
+
+
