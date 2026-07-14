@@ -101,3 +101,20 @@ Then open the frontend app at `http://localhost:5173`.
 - The dashboard currently displays the signed-in user and logout action.
 - Backend support exists for adding and removing additional biometric credentials, even if the UI is not fully exposed.
 - This app is configured for local development and should be hardened before production use.
+
+
+
+
+deployment using render for the backend and vercel for the frontend.
+#!/usr/bin/env bash
+# Exit immediately if a command exits with a non-zero status
+set -o errexit
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Collect static files
+python manage.py collectstatic --no-input
+
+# Run migrations
+python manage.py migrate

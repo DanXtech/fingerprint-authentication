@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from datetime import timedelta
 from pathlib import Path
+import dj_database_url 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,12 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-8)ggu3ldvshc(88y&_mq6vlq&d%8nif!94$464j)%7rah*0(15"
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-8)ggu3ldvshc(88y&_mq6vlq&d%8nif!94$464j)%7rah*0(15")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Automatically becomes False on Render, stays True locally
+DEBUG = "RENDER" not in os.environ
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME', '127.0.0.1'), 'localhost']
 
 
 # Application definition
@@ -38,19 +41,18 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "whitenoise.runserver_nostatic",  # Added to assist WhiteNoise locally
     "django.contrib.staticfiles",
     
     "rest_framework",
     "corsheaders",
     
-    
     "authApi",
-    
-    
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  # Added right after SecurityMiddleware for static files
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -82,12 +84,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
+# Uses PostgreSQL on Render, falls back to SQLite locally
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
 
@@ -126,6 +128,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Added location where collectstatic will store production assets
+
+# WhiteNoise storage optimization for production
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -183,107 +196,30 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',   
     'http://127.0.0.1:5173',
 ]
-CORS_ALLOW_CREDENTIALS= True
-# AUTH_USER_MODEL = 'authApi.User'
 
-# Custom Admin Settings
-# JAZZMIN_SETTINGS = {
-#     "site_title": "Tech space",
-#     "site_header": "Tech space",
-#     "site_brand": "Modern Marketplace ",
-#     # "site_icon": "images/favicon.ico",
-#     # "site_logo": "images/logos/logo.jpg",
-#     "welcome_sign": "Welcome To Tech space",
-#     "copyright": "Tech space",
-#     "user_avatar": "images/photos/logo.jpg",
-#     "topmenu_links": [
-#         {"name": "Dashboard", "url": "home", "permissions": ["auth.view_user"]},
-#         {"model": "auth.User"},
-#     ],
-#     "show_sidebar": True,
-#     "navigation_expanded": True,
-#     # "order_with_respect_to": [
-#     #     "api",
-#     #     "account.User",
-#     # ],
-#     "icons": {
-#         "admin.LogEntry": "fas fa-file",
+# Append your deployed React frontend URL to CORS if it exists on Render
+if "FRONTEND_URL" in os.environ:
+    CORS_ALLOWED_ORIGINS.append(os.environ.get("FRONTEND_URL"))
 
-#         "auth": "fas fa-users-cog",
-#         "auth.user": "fas fa-user",
-
-#         "api.User": "fas fa-user",
-#         "api.Profile":"fas fa-address-card",
-
-        
-#     },
-#     "default_icon_parents": "fas fa-chevron-circle-right",
-#     "default_icon_children": "fas fa-arrow-circle-right",
-#     "related_modal_active": False,
-    
-#     "custom_js": None,
-#     "show_ui_builder": True,
-    
-#     "changeform_format": "horizontal_tabs",
-#     "changeform_format_overrides": {
-#         "auth.user": "collapsible",
-#         "auth.group": "vertical_tabs",
-#     },
-# }
-
-# Jazzmin Tweaks
-# JAZZMIN_UI_TWEAKS = {
-#     "navbar_small_text": True,
-#     "footer_small_text": True,
-#     "body_small_text": True,
-#     "brand_small_text": True,
-#     "brand_colour": "navbar-indigo",
-#     "accent": "accent-olive",
-#     "navbar": "navbar-dark",
-#     "no_navbar_border": False,
-#     "navbar_fixed": False,
-#     "layout_boxed": False,
-#     "footer_fixed": False,
-#     "sidebar_fixed": False,
-#     "sidebar": "sidebar-dark-indigo",
-#     "sidebar_nav_small_text": True,
-#     "sidebar_disable_expand": False,
-#     "sidebar_nav_child_indent": False,
-#     "sidebar_nav_compact_style": False,
-#     "sidebar_nav_legacy_style": False,
-#     "sidebar_nav_flat_style": False,
-#     "theme": "solar",
-#     "dark_mode_theme": "darkly",
-#     "button_classes": {
-#         "primary": "btn-primary",
-#         "secondary": "btn-secondary",
-#         "info": "btn-info",
-#         "warning": "btn-warning",
-#         "danger": "btn-danger",
-#         "success": "btn-success"
-#     }
-# }
-
+CORS_ALLOW_CREDENTIALS = True
 
 
 # Session cookie config
-# In real cross-site production deployments (frontend and backend on
-# different domains) you would need SESSION_COOKIE_SAMESITE = 'None' and
-# SESSION_COOKIE_SECURE = True (requires HTTPS). For local development on
-# localhost, the defaults below are fine and simpler to work with.
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = False  # set True in production (requires HTTPS)
+# Uses secure configurations in production, remains flexible for local testing
+SESSION_COOKIE_SAMESITE = 'Lax' if DEBUG else 'None'
+SESSION_COOKIE_SECURE = not DEBUG  # True in production (requires HTTPS)
 
 
+# ---------------------------------------------------------------------------
+# WebAuthn Settings (Fingerprint / Face ID / Windows Hello)
+# ---------------------------------------------------------------------------
+WEBAUTHN_RP_NAME = "Bass Bank"  # Added this to fix the AttributeError
 
-# WebAuthn (fingerprint / Face ID / Windows Hello) settings
-# RP_ID must be the bare hostname (no scheme/port) that the frontend runs on.
-# ORIGIN must be the exact scheme + host + port the frontend runs on.
-# For local dev with Vite, that's http://localhost:5173.
-# When you deploy, change these two values to your real domain.
-
-WEBAUTHN_RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'localhost')
-WEBAUTHN_RP_NAME = os.environ.get('WEBAUTHN_RP_NAME', 'Fingerprint Login Dashboard')
-WEBAUTHN_ORIGIN = os.environ.get('WEBAUTHN_ORIGIN', 'http://localhost:5173')
-
-
+if DEBUG:
+    # Safe settings for local Vite development server
+    WEBAUTHN_RP_ID = "localhost"
+    WEBAUTHN_ORIGIN = "http://localhost:5173"
+else:
+    # Production settings pulling from your Render environment values
+    WEBAUTHN_RP_ID = os.environ.get("WEBAUTHN_RP_ID", "://render.com")
+    WEBAUTHN_ORIGIN = os.environ.get("FRONTEND_URL", "https://render.com")
