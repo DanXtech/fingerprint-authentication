@@ -202,6 +202,7 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+APPEND_SLASH = True
 
 # Session cookie config
 # Uses secure configurations in production, remains flexible for local testing
